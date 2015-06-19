@@ -33,6 +33,10 @@ import java.io.File;
 import java.io.IOException;
 
 public abstract class FileSystem {
+    public FileHandle get(String path) {
+        return get(path, FileHandleType.Internal);
+    }
+
 	public abstract FileHandle get(String path, FileHandleType type);
 	public abstract String getExternalPath();
 	public abstract String getLocalPath();
