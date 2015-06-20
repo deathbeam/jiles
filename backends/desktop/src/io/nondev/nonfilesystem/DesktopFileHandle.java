@@ -31,47 +31,51 @@ package io.nondev.nonfilesystem;
 
 import java.io.File;
 
+import io.nondev.nonfilesystem.Files.FileType;
+
+/** @author mzechner
+ * @author Nathan Sweet */
 public final class DesktopFileHandle extends FileHandle {
-	public DesktopFileHandle (FileSystem fs, String fileName) {
-        super(fs, fileName);
-    }
-
-    public DesktopFileHandle(FileSystem fs, File file) {
-        super(fs, file);
-    }
-
-    public DesktopFileHandle(FileSystem fs, String fileName, FileHandleType type) {
-        super(fs, fileName, type);
-    }
-
-    public DesktopFileHandle(FileSystem fs, File file, FileHandleType type) {
-        super(fs, file, type);
-    }
-
-	public FileHandle getChild (String name) {
-		if (file.getPath().length() == 0) return new DesktopFileHandle(fs, new File(name), type);
-		return new DesktopFileHandle(fs, new File(file, name), type);
+	public DesktopFileHandle (Files files, String fileName) {
+		super(files, fileName);
 	}
 
-	public FileHandle getSibling (String name) {
+	public DesktopFileHandle (Files files, File file) {
+		super(files, file);
+	}
+
+	public DesktopFileHandle (Files files, String fileName, FileType type) {
+		super(files, fileName, type);
+	}
+
+	public DesktopFileHandle (Files files, File file, FileType type) {
+		super(files, file, type);
+	}
+
+	public FileHandle child (String name) {
+		if (file.getPath().length() == 0) return new DesktopFileHandle(files, new File(name), type);
+		return new DesktopFileHandle(files, new File(file, name), type);
+	}
+
+	public FileHandle sibling (String name) {
 		if (file.getPath().length() == 0) throw new RuntimeException("Cannot get the sibling of the root.");
-		return new DesktopFileHandle(fs, new File(file.getParent(), name), type);
+		return new DesktopFileHandle(files, new File(file.getParent(), name), type);
 	}
 
-	public FileHandle getParent () {
+	public FileHandle parent () {
 		File parent = file.getParentFile();
 		if (parent == null) {
-			if (type == FileHandleType.Absolute)
+			if (type == FileType.Absolute)
 				parent = new File("/");
 			else
 				parent = new File("");
 		}
-		return new DesktopFileHandle(fs, parent, type);
+		return new DesktopFileHandle(files, parent, type);
 	}
 
-	public File getFile () {
-		if (type == FileHandleType.External) return new File(fs.getExternalPath(), file.getPath());
-		if (type == FileHandleType.Local) return new File(fs.getLocalPath(), file.getPath());
+	public File file () {
+		if (type == FileType.External) return new File(DesktopFiles.externalPath, file.getPath());
+		if (type == FileType.Local) return new File(DesktopFiles.localPath, file.getPath());
 		return file;
 	}
 }

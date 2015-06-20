@@ -10,7 +10,7 @@
 
     <groupId>io.nondev</groupId>
     <artifactId>nonfilesystem-android</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>NonFileSystem Android backend</name>
     <description>Cross-platform filesystem for Windows, Mac OS X, Linux, Android and iOS.</description>
 

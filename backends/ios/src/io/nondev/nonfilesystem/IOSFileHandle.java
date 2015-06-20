@@ -30,56 +30,55 @@
 package io.nondev.nonfilesystem;
 
 import java.io.File;
-import org.robovm.apple.foundation.NSBundle;
+
+import io.nondev.nonfilesystem.Files.FileType;
 
 public class IOSFileHandle extends FileHandle {
-	static final String internalPath = NSBundle.getMainBundle().getBundlePath();
+	public IOSFileHandle (Files files, String fileName) {
+		super(files, fileName);
+	}
 
-	public IOSFileHandle (FileSystem fs, String fileName) {
-        super(fs, fileName);
-    }
+	public IOSFileHandle (Files files, File file) {
+		super(files, file);
+	}
 
-    public IOSFileHandle(FileSystem fs, File file) {
-        super(fs, file);
-    }
+	public IOSFileHandle (Files files, String fileName, FileType type) {
+		super(files, fileName, type);
+	}
 
-    public IOSFileHandle(FileSystem fs, String fileName, FileHandleType type) {
-        super(fs, fileName, type);
-    }
-
-    public IOSFileHandle(FileSystem fs, File file, FileHandleType type) {
-        super(fs, file, type);
-    }
-
-	@Override
-	public FileHandle getChild (String name) {
-		if (file.getPath().length() == 0) return new IOSFileHandle(fs, new File(name), type);
-		return new IOSFileHandle(fs, new File(file, name), type);
+	public IOSFileHandle (Files files, File file, FileType type) {
+		super(files, file, type);
 	}
 
 	@Override
-	public FileHandle getParent () {
+	public FileHandle child (String name) {
+		if (file.getPath().length() == 0) return new IOSFileHandle(files, new File(name), type);
+		return new IOSFileHandle(files, new File(file, name), type);
+	}
+
+	@Override
+	public FileHandle parent () {
 		File parent = file.getParentFile();
 		if (parent == null) {
-			if (type == FileHandleType.Absolute)
+			if (type == FileType.Absolute)
 				parent = new File("/");
 			else
 				parent = new File("");
 		}
-		return new IOSFileHandle(fs, parent, type);
+		return new IOSFileHandle(files, parent, type);
 	}
 
 	@Override
-	public FileHandle getSibling (String name) {
+	public FileHandle sibling (String name) {
 		if (file.getPath().length() == 0) throw new RuntimeException("Cannot get the sibling of the root.");
-		return new IOSFileHandle(fs, new File(file.getParent(), name), type);
+		return new IOSFileHandle(files, new File(file.getParent(), name), type);
 	}
 
 	@Override
-	public File getFile () {
-		if (type == FileHandleType.Internal) return new File(internalPath, file.getPath());
-		if (type == FileHandleType.External) return new File(fs.getExternalPath(), file.getPath());
-		if (type == FileHandleType.Local) return new File(fs.getLocalPath(), file.getPath());
+	public File file () {
+		if (type == FileType.Internal) return new File(IOSFiles.internalPath, file.getPath());
+		if (type == FileType.External) return new File(IOSFiles.externalPath, file.getPath());
+		if (type == FileType.Local) return new File(IOSFiles.localPath, file.getPath());
 		return file;
 	}
 

@@ -29,28 +29,68 @@
 
 package io.nondev.nonfilesystem;
 
-public class IOSFileSystem extends FileSystem {
+import org.robovm.apple.foundation.NSBundle;
+
+public class IOSFiles implements Files {
+	// TODO: Use NSSearchPathForDirectoriesInDomains instead?
+	// $HOME should point to the app root dir.
 	static final String appDir = System.getenv("HOME");
 	static final String externalPath = appDir + "/Documents/";
 	static final String localPath = appDir + "/Library/local/";
+	static final String internalPath = NSBundle.getMainBundle().getBundlePath();
 
-	public IOSFileSystem () {
+	public IOSFiles () {
 		new FileHandle(this, externalPath).mkdirs();
 		new FileHandle(this, localPath).mkdirs();
 	}
 
 	@Override
-	public FileHandle get(String fileName, FileHandleType type) {
+	public FileHandle getFileHandle (String fileName, FileType type) {
 		return new IOSFileHandle(this, fileName, type);
 	}
 
 	@Override
-	public String getExternalPath () {
+	public FileHandle classpath (String path) {
+		return new IOSFileHandle(this, path, FileType.Classpath);
+	}
+
+	@Override
+	public FileHandle internal (String path) {
+		return new IOSFileHandle(this, path, FileType.Internal);
+	}
+
+	@Override
+	public FileHandle external (String path) {
+		return new IOSFileHandle(this, path, FileType.External);
+	}
+
+	@Override
+	public FileHandle absolute (String path) {
+		return new IOSFileHandle(this, path, FileType.Absolute);
+	}
+
+	@Override
+	public FileHandle local (String path) {
+		return new IOSFileHandle(this, path, FileType.Local);
+	}
+
+	@Override
+	public String getExternalStoragePath () {
 		return externalPath;
 	}
 
 	@Override
-	public String getLocalPath () {
+	public boolean isExternalStorageAvailable () {
+		return true;
+	}
+
+	@Override
+	public String getLocalStoragePath () {
 		return localPath;
+	}
+
+	@Override
+	public boolean isLocalStorageAvailable () {
+		return true;
 	}
 }

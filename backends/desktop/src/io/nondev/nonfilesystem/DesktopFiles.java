@@ -29,40 +29,63 @@
 
 package io.nondev.nonfilesystem;
 
-import android.content.res.AssetManager;
-import android.os.Environment;
+import java.io.File;
 
-public class AndroidFileSystem extends FileSystem {
-	protected final String sdcard = Environment.getExternalStorageDirectory().getAbsolutePath() + "/";
-	protected final String localpath;
-	protected final AssetManager assets;
+import io.nondev.nonfilesystem.Files.FileType;
 
-	public AndroidFileSystem (AssetManager assets) {
-		this.assets = assets;
-		localpath = sdcard;
-	}
-
-	public AndroidFileSystem (AssetManager assets, String localpath) {
-		this.assets = assets;
-		this.localpath = localpath.endsWith("/") ? localpath : localpath + "/";
+/** @author mzechner
+ * @author Nathan Sweet */
+public final class DesktopFiles implements Files {
+	static public final String externalPath = System.getProperty("user.home") + File.separator;
+	static public final String localPath = new File("").getAbsolutePath() + File.separator;
+	
+	@Override
+	public FileHandle getFileHandle (String fileName, FileType type) {
+		return new DesktopFileHandle(this, fileName, type);
 	}
 
 	@Override
-	public FileHandle get(String path, FileHandleType type) {
-		return new AndroidFileHandle(this, path, type);
+	public FileHandle classpath (String path) {
+		return new DesktopFileHandle(this, path, FileType.Classpath);
 	}
 
 	@Override
-	public String getExternalPath() {
-		return sdcard;
+	public FileHandle internal (String path) {
+		return new DesktopFileHandle(this, path, FileType.Internal);
 	}
 
 	@Override
-	public String getLocalPath() {
-		return localpath;
+	public FileHandle external (String path) {
+		return new DesktopFileHandle(this, path, FileType.External);
 	}
 
-	public AssetManager getAssetManager() {
-		return assets;
+	@Override
+	public FileHandle absolute (String path) {
+		return new DesktopFileHandle(this, path, FileType.Absolute);
+	}
+
+	@Override
+	public FileHandle local (String path) {
+		return new DesktopFileHandle(this, path, FileType.Local);
+	}
+
+	@Override
+	public String getExternalStoragePath () {
+		return externalPath;
+	}
+
+	@Override
+	public boolean isExternalStorageAvailable () {
+		return true;
+	}
+
+	@Override
+	public String getLocalStoragePath () {
+		return localPath;
+	}
+
+	@Override
+	public boolean isLocalStorageAvailable () {
+		return true;
 	}
 }

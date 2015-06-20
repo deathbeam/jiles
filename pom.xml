@@ -10,7 +10,7 @@
 
     <groupId>io.nondev</groupId>
     <artifactId>nonfilesystem</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>NonFileSystem</name>
     <description>Cross-platform filesystem for Windows, Mac OS X, Linux, Android and iOS.</description>
 
@@ -23,6 +23,11 @@
         <license>
             <name>MIT License</name>
             <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+        <license>
+            <name>Apache Licence 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -39,6 +44,10 @@
             <name>Thomas Slusny</name>
             <url>https://github.com/deathbeam</url>
             <id>deathbeam</id>
+        </developer>
+        <developer>
+            <id>Developers</id>
+            <url>http://code.google.com/p/libgdx/people/list</url>
         </developer>
     </developers>
 

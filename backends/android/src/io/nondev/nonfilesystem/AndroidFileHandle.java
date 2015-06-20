@@ -29,74 +29,81 @@
 
 package io.nondev.nonfilesystem;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
 
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 
+import io.nondev.nonfilesystem.Files.FileType;
+
+/** @author mzechner
+ * @author Nathan Sweet */
 public class AndroidFileHandle extends FileHandle {
-	public AndroidFileHandle (FileSystem fs, String fileName) {
-        super(fs, fileName);
-    }
-
-    public AndroidFileHandle(FileSystem fs, File file) {
-        super(fs, file);
-    }
-
-    public AndroidFileHandle(FileSystem fs, String fileName, FileHandleType type) {
-        super(fs, fileName, type);
-    }
-
-    public AndroidFileHandle(FileSystem fs, File file, FileHandleType type) {
-        super(fs, file, type);
-    }
-
 	protected AssetManager assets() {
-		AndroidFileSystem afs = (AndroidFileSystem)fs;
-		return afs.getAssetManager();
+		return ((AndroidFiles)files).getAssetManager();
 	}
 
-	public FileHandle getChild (String name) {
+	public AndroidFileHandle (Files files, String fileName) {
+		super(files, fileName);
+	}
+
+	public AndroidFileHandle (Files files, File file) {
+		super(files, file);
+	}
+
+	public AndroidFileHandle (Files files, String fileName, FileType type) {
+		super(files, fileName, type);
+	}
+
+	public AndroidFileHandle (Files files, File file, FileType type) {
+		super(files, file, type);
+	}
+
+	public FileHandle child (String name) {
 		name = name.replace('\\', '/');
-		if (file.getPath().length() == 0) return new AndroidFileHandle(fs, new File(name), type);
-		return new AndroidFileHandle(fs, new File(file, name), type);
+		if (file.getPath().length() == 0) return new AndroidFileHandle(files, new File(name), type);
+		return new AndroidFileHandle(files, new File(file, name), type);
 	}
 
-	public FileHandle getSibling (String name) {
+	public FileHandle sibling (String name) {
 		name = name.replace('\\', '/');
 		if (file.getPath().length() == 0) throw new RuntimeException("Cannot get the sibling of the root.");
-		return new AndroidFileHandle(fs, new File(file.getParent(), name), type);
+		return new AndroidFileHandle(files, new File(file.getParent(), name), type);
 	}
 
-	public FileHandle getParent () {
+	public FileHandle parent () {
 		File parent = file.getParentFile();
 		if (parent == null) {
-			if (type == FileHandleType.Absolute)
+			if (type == FileType.Absolute)
 				parent = new File("/");
 			else
 				parent = new File("");
 		}
-		return new AndroidFileHandle(fs, parent, type);
+		return new AndroidFileHandle(files, parent, type);
 	}
 
-	public InputStream readStream() {
-		if (type == FileHandleType.Internal) {
+	public InputStream read () {
+		if (type == FileType.Internal) {
 			try {
 				return assets().open(file.getPath());
 			} catch (IOException ex) {
 				throw new RuntimeException("Error reading file: " + file + " (" + type + ")", ex);
 			}
 		}
-		return super.readStream();
+		return super.read();
 	}
 
 	public FileHandle[] list () {
-		if (type == FileHandleType.Internal) {
+		if (type == FileType.Internal) {
 			try {
 				String[] relativePaths = assets().list(file.getPath());
 				FileHandle[] handles = new FileHandle[relativePaths.length];
 				for (int i = 0, n = handles.length; i < n; i++)
-					handles[i] = new AndroidFileHandle(fs, new File(file, relativePaths[i]), type);
+					handles[i] = new AndroidFileHandle(files, new File(file, relativePaths[i]), type);
 				return handles;
 			} catch (Exception ex) {
 				throw new RuntimeException("Error listing children: " + file + " (" + type + ")", ex);
@@ -106,15 +113,15 @@ public class AndroidFileHandle extends FileHandle {
 	}
 
 	public FileHandle[] list (FileFilter filter) {
-		if (type == FileHandleType.Internal) {
+		if (type == FileType.Internal) {
 			try {
 				String[] relativePaths = assets().list(file.getPath());
 				FileHandle[] handles = new FileHandle[relativePaths.length];
 				int count = 0;
 				for (int i = 0, n = handles.length; i < n; i++) {
 					String path = relativePaths[i];
-					FileHandle child = new AndroidFileHandle(fs, new File(file, path), type);
-					if (!filter.accept(child.getFile())) continue;
+					FileHandle child = new AndroidFileHandle(files, new File(file, path), type);
+					if (!filter.accept(child.file())) continue;
 					handles[count] = child;
 					count++;
 				}
@@ -132,7 +139,7 @@ public class AndroidFileHandle extends FileHandle {
 	}
 
 	public FileHandle[] list (FilenameFilter filter) {
-		if (type == FileHandleType.Internal) {
+		if (type == FileType.Internal) {
 			try {
 				String[] relativePaths = assets().list(file.getPath());
 				FileHandle[] handles = new FileHandle[relativePaths.length];
@@ -140,7 +147,7 @@ public class AndroidFileHandle extends FileHandle {
 				for (int i = 0, n = handles.length; i < n; i++) {
 					String path = relativePaths[i];
 					if (!filter.accept(file, path)) continue;
-					handles[count] = new AndroidFileHandle(fs, new File(file, path), type);
+					handles[count] = new AndroidFileHandle(files, new File(file, path), type);
 					count++;
 				}
 				if (count < relativePaths.length) {
@@ -157,7 +164,7 @@ public class AndroidFileHandle extends FileHandle {
 	}
 
 	public FileHandle[] list (String suffix) {
-		if (type == FileHandleType.Internal) {
+		if (type == FileType.Internal) {
 			try {
 				String[] relativePaths = assets().list(file.getPath());
 				FileHandle[] handles = new FileHandle[relativePaths.length];
@@ -165,7 +172,7 @@ public class AndroidFileHandle extends FileHandle {
 				for (int i = 0, n = handles.length; i < n; i++) {
 					String path = relativePaths[i];
 					if (!path.endsWith(suffix)) continue;
-					handles[count] = new AndroidFileHandle(fs, new File(file, path), type);
+					handles[count] = new AndroidFileHandle(files, new File(file, path), type);
 					count++;
 				}
 				if (count < relativePaths.length) {
@@ -182,7 +189,7 @@ public class AndroidFileHandle extends FileHandle {
 	}
 
 	public boolean isDirectory () {
-		if (type == FileHandleType.Internal) {
+		if (type == FileType.Internal) {
 			try {
 				return assets().list(file.getPath()).length > 0;
 			} catch (IOException ex) {
@@ -193,12 +200,13 @@ public class AndroidFileHandle extends FileHandle {
 	}
 
 	public boolean exists () {
-		if (type == FileHandleType.Internal) {
+		if (type == FileType.Internal) {
 			String fileName = file.getPath();
 			try {
-				assets().open(fileName).close();
+				assets().open(fileName).close(); // Check if file exists.
 				return true;
 			} catch (Exception ex) {
+				// This is SUPER slow! but we need it for directories.
 				try {
 					return assets().list(fileName).length > 0;
 				} catch (Exception ignored) {
@@ -210,7 +218,7 @@ public class AndroidFileHandle extends FileHandle {
 	}
 
 	public long length () {
-		if (type == FileHandleType.Internal) {
+		if (type == FileType.Internal) {
 			AssetFileDescriptor fileDescriptor = null;
 			try {
 				fileDescriptor = assets().openFd(file.getPath());
@@ -220,7 +228,9 @@ public class AndroidFileHandle extends FileHandle {
 				if (fileDescriptor != null) {
 					try {
 						fileDescriptor.close();
-					} catch (IOException e) { }
+					} catch (IOException e) {
+					}
+					;
 				}
 			}
 		}
@@ -231,9 +241,9 @@ public class AndroidFileHandle extends FileHandle {
 		return super.lastModified();
 	}
 
-	public File getFile () {
-		if (type == FileHandleType.Local) return new File(fs.getLocalPath(), file.getPath());
-		return super.getFile();
+	public File file () {
+		if (type == FileType.Local) return new File(files.getLocalStoragePath(), file.getPath());
+		return super.file();
 	}
 
 }
